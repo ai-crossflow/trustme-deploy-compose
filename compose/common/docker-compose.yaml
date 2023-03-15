@@ -1,0 +1,242 @@
+version: "3.9"
+services:
+  mysql:
+    image: crossflowai/trustme-mysql-cube
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: trustme
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - party
+
+  adminer:
+    image: adminer:4
+    restart: unless-stopped
+    networks:
+      party:
+        aliases:
+          - ${ADMINER_HOSTNAME}
+
+  consul:
+    image: consul:1.9
+    restart: unless-stopped
+    networks:
+      party:
+        aliases:
+          - ${CONSUL_HOSTNAME}
+
+  redis:
+    image: ubuntu/redis:edge
+    restart: unless-stopped
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+      REDIS_ALLOW_REMOTE_CONNECTIONS: "yes"
+    networks:
+      - party
+
+  sftp:
+    image: emberstack/sftp
+    restart: unless-stopped
+    volumes:
+      - ./sftp.json:/app/config/sftp.json:ro
+    networks:
+      - party
+
+  cube:
+    image: "crossflowai/trustme-studio"
+    restart: unless-stopped
+    command: ["sh", "-c", "cd /etc/bestudio && npm run start:prod"]
+    networks:
+      party:
+        aliases:
+          - ${CUBE_HOSTNAME}
+    environment:
+      CLIENT_ID: webClientId
+      CLIENT_SECRET: d2dqVEp21YONwDR7
+      OMEGA_ENDPOINT: http://omega:6400
+      THETA_ENDPOINT: http://theta:6700
+      GAMMA_ENDPOINT:  http://gamma:6300
+      ZETA_ENDPOINT: http://zeta:6500
+      DOC_ENDPOINT: http://doc:7220
+      DATA_ASSET_ENDPOINT: http://edgeasset:7600
+      MODEL_ENDPOINT: http://edgeserving:7700
+
+  edge:
+    image: crossflowai/trustme-studio
+    restart: unless-stopped
+    command: ["sh", "-c", "cd /etc/edge-studio-ui && npm run start:prod"]
+    networks:
+      party:
+        aliases:
+          - ${EDGE_HOSTNAME}
+    environment:
+      CLIENT_ID: webClientId
+      CLIENT_SECRET: d2dqVEp21YONwDR7
+      OMEGA_ENDPOINT: http://omega:6400
+      THETA_ENDPOINT: http://theta:6700
+      GAMMA_ENDPOINT:  http://gamma:6300
+      ZETA_ENDPOINT: http://zeta:6500
+      DOC_ENDPOINT: http://doc:7220
+      DATA_ASSET_ENDPOINT: http://edgeasset:7600
+      MODEL_ENDPOINT: http://edgeserving:7700
+
+  omega:
+    image: crossflowai/trustme-compose
+    restart: unless-stopped
+    command: ["java", "-jar", "/omega.jar"]
+    networks:
+      - party
+    environment:
+      LOG_PATH: /var/log/trustme
+      spring.cloud.consul.discovery.enabled: "true"
+      spring.cloud.consul.discovery.register: "true"
+      spring.cloud.consul.enabled: "true"
+      spring.cloud.consul.host: consul
+      spring.cloud.consul.port: 8500
+      spring.datasource.url: jdbc:mysql://mysql:3306/omega
+      spring.datasource.username: root
+      spring.datasource.password: trustme
+      spring.security.enabled: "true"
+      swagger.enabled: "true"
+
+  theta:
+    image: crossflowai/trustme-compose
+    restart: unless-stopped
+    command: ["java", "-jar", "/theta.jar"]
+    networks:
+      party:
+        aliases:
+          - ${THETA_HOSTNAME}
+    environment:
+      LOG_PATH: /var/log/trustme
+      spring.cloud.consul.discovery.enabled: "true"
+      spring.cloud.consul.discovery.register: "true"
+      spring.cloud.consul.enabled: "true"
+      spring.cloud.consul.host: consul
+      spring.cloud.consul.port: 8500
+      spring.security.enabled: "false"
+      swagger.enabled: "false"
+      spring.datasource.engine.jdbc-url: jdbc:mysql://mysql:3306/workflow
+      spring.datasource.engine.username: root
+      spring.datasource.engine.password: trustme
+      spring.datasource.studio.jdbc-url: jdbc:mysql://mysql:3306/theta
+      spring.datasource.studio.username: root
+      spring.datasource.studio.password: trustme
+      spring.redis.host: redis
+      spring.redis.port: "6379"
+      spring.cache.redis.key-prefix: theta
+      dfl.url: http://rate:9902
+      dfl.log-url: ws://wsevent:8080
+
+  edgeasset:
+    image: crossflowai/trustme-compose
+    restart: unless-stopped
+    command: ["java", "-jar", "/edge-asset.jar"]
+    networks:
+      - party
+    environment:
+      LOG_PATH: /var/log/trustme
+      spring.cloud.consul.discovery.enabled: "true"
+      spring.cloud.consul.discovery.register: "true"
+      spring.cloud.consul.enabled: "true"
+      spring.cloud.consul.host: consul
+      spring.cloud.consul.port: 8500
+      spring.security.enabled: "false"
+      swagger.enabled: "true"
+      spring.redis.host: redis
+      spring.redis.port: "6379"
+      spring.datasource.dynamic.datasource.master.url: jdbc:mysql://mysql:3306/edge
+      spring..datasource.dynamic.datasource.master.username: root
+      spring.datasource.dynamic.datasource.master.password: trustme
+      spring.datasource.dynamic.datasource.quartz.url: jdbc:mysql://mysql:3306/quartz
+      spring.datasource.dynamic.datasource.quartz.username: root
+      spring.datasource.dynamic.datasource.quartz.password: trustme
+      omega.ip_address: http://omega:6400
+      spring.sftp.host: sftp
+      spring.sftp.port: "2022"
+      spring.sftp.root: /home/trustme/sftp/edge-asset
+      spring.sftp.username: trustme
+      spring.sftp.password: trustme
+
+  edgeserving:
+    image: crossflowai/trustme-compose
+    restart: unless-stopped
+    command: ["java", "-jar", "/edge-serving.jar"]
+    networks:
+      - party
+    environment:
+      LOG_PATH: /var/log/trustme
+      spring.cloud.consul.discovery.enabled: "true"
+      spring.cloud.consul.discovery.register: "true"
+      spring.cloud.consul.enabled: "true"
+      spring.cloud.consul.host: consul
+      spring.cloud.consul.port: 8500
+      spring.security.enabled: "false"
+      swagger.enabled: "false"
+      spring.redis.host: redis
+      spring.redis.port: "6379"
+      spring.datasource.dynamic.datasource.master.url: jdbc:mysql://mysql:3306/edge
+      spring..datasource.dynamic.datasource.master.username: root
+      spring.datasource.dynamic.datasource.master.password: trustme
+      spring.datasource.dynamic.datasource.quartz.url: jdbc:mysql://mysql:3306/quartz
+      spring.datasource.dynamic.datasource.quartz.username: root
+      spring.datasource.dynamic.datasource.quartz.password: trustme
+      spring.sftp.host: sftp
+      spring.sftp.port: "2022"
+      spring.sftp.root: /home/trustme/sftp/edge-asset
+      spring.sftp.username: trustme
+      spring.sftp.password: trustme
+
+  gaiadatax:
+    image: crossflowai/trustme-compose
+    restart: unless-stopped
+    command: ["java", "-jar", "/datax-server.jar"]
+    networks:
+      - party
+    environment:
+      LOG_PATH: /var/log/trustme
+
+  gaiaway:
+    image: crossflowai/trustme-compose
+    restart: unless-stopped
+    command: ["java", "-jar", "/gaia-way.jar"]
+    networks:
+      - party
+    environment:
+      LOG_PATH: /var/log/trustme
+      app.datax-home: /data/datax
+      server.assetHost: http://edgeasset:7600
+
+  rate:
+    restart: unless-stopped
+    image: registry.cn-hangzhou.aliyuncs.com/trustme/engine:1.1.2
+    command: ["/bin/sh", "-c", "docker-entrypoint.sh"]
+    networks:
+      party:
+        aliases:
+          - ${RATE_HOSTNAME}
+    volumes:
+      - ./service_conf.yaml:/cube/conf/service_conf.yaml
+      - ./route_table.${PARTY_ID}.json:/cube/conf/route_table.json
+
+  workflow:
+    image: mariadb:10.5
+    restart: unless-stopped
+    networks:
+      - party
+    environment:
+      MYSQL_ROOT_PASSWORD: trustme
+      MYSQL_DATABASE: workflow
+    volumes:
+      - workflow-data:/var/lib/mysql
+ 
+volumes:
+  mysql-data:
+  workflow-data:
+
+
+networks:
+  party:
+    name: ${NET}
+    external: true

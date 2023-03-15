@@ -1,0 +1,37 @@
+work_mode: 1
+database:
+  name: workflow
+  user: root
+  passwd: trustme
+  host: mysql
+  port: 3306
+
+message_audit_database:
+  name: workflow
+  user: root
+  passwd: trustme
+  host: mysql
+  port: 3306
+
+workflow:
+  host: 0.0.0.0
+  grpc_port: 9900
+  secure_grpc_port: 9901
+  http_port: 9902
+
+redis:
+  host: redis
+  port: 6379
+#  password: 5241590000000000
+
+fate_on_ray:
+  ray:
+    cores_per_node: 20
+    nodes: 1
+  #  hdfs:
+  #    name_node: hdfs://fate-cluster
+  #    # default /
+  #    path_prefix:
+  bridge:
+    host: 127.0.0.1
+    port: 9460

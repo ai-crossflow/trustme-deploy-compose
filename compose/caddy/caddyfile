@@ -1,0 +1,56 @@
+http://cube.4999.priv.ink {
+	reverse_proxy cube-4999:8888
+}
+
+http://edge.4999.priv.ink {
+	reverse_proxy edge-4999:7120
+}
+
+http://adminer.4999.priv.ink {
+    reverse_proxy adminer-4999:8080
+}
+
+http://theta.4999.priv.ink {
+    reverse_proxy theta-4999:6700
+}
+
+http://rate.4999.priv.ink {
+    reverse_proxy rate-4999:9902
+}
+
+http://sftp.4999.priv.ink {
+    reverse_proxy sftp-4999:2022
+}
+
+http://consul.4999.priv.ink {
+    reverse_proxy consul-4999:8500
+}
+
+http://cube.5001.priv.ink {
+	reverse_proxy cube-5001:8888
+}
+
+http://edge.5001.priv.ink {
+	reverse_proxy edge-5001:7120
+}
+
+http://adminer.5001.priv.ink {
+    reverse_proxy adminer-5001:8080
+}
+
+http://theta.5001.priv.ink {
+    reverse_proxy theta-5001:6700
+}
+
+http://rate.5001.priv.ink {
+    reverse_proxy rate-5001:9902
+}
+
+http://sftp.5001.priv.ink {
+    reverse_proxy sftp-5001:2022
+}
+
+http://consul.5001.priv.ink {
+    reverse_proxy consul-5001:8500
+}
+

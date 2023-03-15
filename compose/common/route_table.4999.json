@@ -1,0 +1,49 @@
+{
+  "partner": {
+    "local": "4999"
+  },
+  "route_table": {
+    "4999": {
+      "is_secure": false,
+      "default": [
+        {
+          "ip": "rate.4999",
+          "port": 9900,
+          "secure_port": 9901,
+          "psi_ot_port": 7766
+        }
+      ],
+      "workflow": [
+        {
+          "ip": "rate.4999",
+          "port": 9900,
+          "secure_port": 9901,
+          "psi_ot_port": 7766
+        }
+      ]
+    },
+    "5001": {
+      "is_secure": false,
+      "default": [
+        {
+          "ip": "rate.5001",
+          "port": 9900,
+          "secure_port": 9901,
+          "psi_ot_port": 7766
+        }
+      ],
+      "workflow": [
+        {
+          "ip": "rate.5001",
+          "port": 9900,
+          "secure_port": 9901,
+          "psi_ot_port": 7766
+        }
+      ]
+    }
+  },
+  "permission": {
+    "default_allow": true
+  }
+}
+
